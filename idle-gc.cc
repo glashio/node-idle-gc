@@ -59,7 +59,13 @@ bool IdleNotification()
 
 void Timer(uv_timer_t*)
 {
-  if (IdleNotification()) state = PAUSE;
+  if (IdleNotification()) {
+#if NODE_VERSION_AT_LEAST(0, 12, 0)
+//		isolate->RequestGarbageCollectionForTesting(v8::Isolate::kFullGarbageCollection);
+  isolate->LowMemoryNotification();
+#endif
+    state = PAUSE;
+  }
   if (trace_gc) Trace();
 }
 
@@ -128,6 +134,8 @@ void Init(v8::Local<v8::Object> obj)
   {
     static const char flag[] = "--use_idle_notification";
     v8::V8::SetFlagsFromString(flag, sizeof(flag) - 1);
+//    static const char glag[] = "--expose_gc";
+//   v8::V8::SetFlagsFromString(glag, sizeof(glag) - 1);
   }
 #endif
 
